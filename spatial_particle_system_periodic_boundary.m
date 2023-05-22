@@ -16,7 +16,7 @@ dist = @(a,x) angle (exp(1i*(x-a)*2*pi/L))*L/(2*pi);
 J_F_fun = @(x, a, sigma_F) exp( -( dist(a,x).^2)/(2*sigma_F^2) )/sqrt(2*pi*sigma_F^2);
 W_fun = @(x, a, sigma_W) exp( -( dist(a,x).^2 )/(2*sigma_W^2) )/sqrt(2*pi*sigma_W^2);
 
-sigma_F = 0.05; % seed dispersal radius forest trees
+sigma_F = 0.1; % seed dispersal radius forest trees
 sigma_W = 0.05; % fire radius
 
 % Model Parameters
@@ -27,7 +27,7 @@ f0=0.1;
 f1=0.9;
 s2=0.05;
 
-sites=500;
+sites=2000;
 
 P=1;                % Number of Patches
 N=sites*ones(1,P);    % Number of Sites / Patch
@@ -119,20 +119,28 @@ end
 toc
 
 %% Plots
-figure(1);
+figure(1); % plot solution interpolated to a regualarly spaced grid
 imagesc(squeeze(mean(Sol_Save,1)));
 custom_map = [1 1 1
     0 0.5 0];
 colormap(custom_map);
+xlabel('time');
+ylabel('space');
+set(gca,'linewidth',2);
+set(gca,'FontSize',20);
 
+% plot of the "raw" solution 
 Z=100;
-
 V=squeeze(mean(Sol_Save,1));
 U=squeeze(mean(reshape(V,sites/Z,Z,[]),1));
-figure;
+figure(2);
 [x,y]=meshgrid(0:dt:Times(end),5*(1:Z)/Z);
 pcolor(x,y,flipud(U))
 shading interp;
 custom_map = [
     linspace(1,0,100)' linspace(1,0.5,100)' linspace(1,0,100)'];
 colormap(custom_map);
+xlabel('time');
+ylabel('space');
+set(gca,'linewidth',2);
+set(gca,'FontSize',20);

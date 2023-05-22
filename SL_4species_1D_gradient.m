@@ -15,7 +15,7 @@ FINAL_PLOT = 0;
 PHASE_SPACE_PLOTS = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 500; % N+1 grid points
+N = 400; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
 n = 2000; % number of time steps
