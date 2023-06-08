@@ -1,0 +1,11 @@
+p ga=5,gf=2e-2,fa=3e-2,fg=3e-2,bg=9e6,bf=1.11e5,xi=1e-4,ab=1e6
+p t2=0.4,f0=0.1,f1=0.9,s2=0.05
+
+phi(G)=(f0+(f1-f0)/(1+exp(-(G-t2)/s2)))
+
+G'=ga*A-fg*F*G-phi(G)*G-bg*(1-G-F-A)*G+gf*F-xi*G
+A'=ab*(1-G-F-A)-gA*A-fa*F*A
+F'=fg*F*G+fa*F*A-bf*(1-G-F-A)*F-gf*F
+
+@ total=200
+init G=0.1
