@@ -12,12 +12,12 @@ t0 = 0;           % Start time
 phi_A = 1e-8; % Rate of forest seeding into ash
 phi_G = 1e-8; % Rate of forest seeding into grass
 
-gamma_A = 5; % Rate of grass regrowth from ash
+gamma_A = 20; % Rate of grass regrowth from ash
 gamma_F = 1e-8; % Rate of non-fire forest mortality
 
 beta_F = 1e-8; % Rate of fire spread through forest
-beta_G = 1e-6; % Rate of fire spread through grass
-xi = 0.05; % Rate of spontaneous fires
+beta_G = 1; % Rate of fire spread through grass
+xi = 0.0005; % Rate of spontaneous fires
 
 q = 4; % Fire quenching rate
 
