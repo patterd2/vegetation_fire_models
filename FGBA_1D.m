@@ -6,28 +6,29 @@ clear all;
 L = 5;            % Working on [0, L]
 num_sites = 100;  % Total number of sites in [0, L]
 T = 100;          % Simulation time length in real-time units
-dt = 0.01;        % Length of time step in real-time units
+dt = 0.1;        % Length of time step in real-time units
 t0 = 0;           % Start time
 
-phi_A = 1e-8; % Rate of forest seeding into ash
-phi_G = 1e-8; % Rate of forest seeding into grass
+phi_A = 1e-1; % Rate of forest seeding into ash
+phi_G = 1e-1; % Rate of forest seeding into grass
 
-gamma_A = 20; % Rate of grass regrowth from ash
-gamma_F = 1e-8; % Rate of non-fire forest mortality
+gamma_A = 1e1; % Rate of grass regrowth from ash
 
-beta_F = 1e-8; % Rate of fire spread through forest
-beta_G = 1; % Rate of fire spread through grass
-xi = 0.0005; % Rate of spontaneous fires
+mu = 1e-3; % Rate of non-fire forest mortality
 
-q = 4; % Fire quenching rate
+beta_F = 1e4; % Rate of fire spread through forest
+beta_G = 1e5; % Rate of fire spread through grass
+xi = 1e-4; % Rate of spontaneous fires
+
+q = 1e4; % Fire quenching rate
 
 sigma_F = 0.01; % width of Gaussian of forest seeding
-sigma_B = 1;    % width of Gaussian for burning spread over grassland
-sigma_G = 0.1;  % width of Gaussian for flammability of large grass
+sigma_B = 0.01;    % width of Gaussian for burning spread over grassland
+sigma_G = 0.01;  % width of Gaussian for flammability of large grass
 
 t2 = 0.4;     % Sigmoid center
-f0 = 0.05;    % Sigmoid lower bound
-f1 = 1.5;     % Sigmoid upper bound
+g0 = 0.000;    % Sigmoid lower bound
+g1 = 1;     % Sigmoid upper bound
 s2 = 0.05;    % Sigmoid width
 
 % Periodic distance function
@@ -39,7 +40,7 @@ W_B = @(r1, r2) exp( -( dist(r1, r2).^2 ) / (2 * sigma_B^2)) / sqrt(2 * pi * sig
 W_G = @(r1, r2) exp( -( dist(r1, r2).^2 ) / (2 * sigma_G^2)) / sqrt(2 * pi * sigma_G^2);
 
 % Sigmoid forest mortality function
-phi = @(x) (f0 + (f1 - f0)./(1 + exp(-(x - t2) / s2)));
+phi = @(x) (g0 + (g1 - g0)./(1 + exp(-(x - t2) / s2)));
 
 % Allocate states of sites
 X = zeros(num_sites,1);
@@ -87,7 +88,7 @@ for i = 1:num_sites
     end
 
     if (X(i, 1) == 1) % X(i) = F
-        const_rates(i) = gamma_F;
+        const_rates(i) = mu;
     end
 
     if (X(i, 1) == 2) % X(i) = B
@@ -228,7 +229,7 @@ while (t < T)
     end
 
     if (X(site, k + 1) == 1) % New state is F
-        const_rates(site) = gamma_F;
+        const_rates(site) = mu;
     end
 
     if (X(site, k + 1) == 2) % New state is B
