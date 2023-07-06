@@ -1,4 +1,4 @@
-p beta_g=1e5,beta_f=1e4
+p beta_g=1e5,beta_f=1e4,q=1e4
 p gamma=1e1
 p varphi_a=1e-1,varphi_g=1e-1
 p mu=1e-3
