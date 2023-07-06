@@ -13,6 +13,6 @@ G'=mu*F+gamma*A-varphi_G*F*G-phi_G(G)*G-beta_g*(1-G-F-A)*G
 A'=q*(1-G-F-A)-varphi_A*F*A-gamma*A
 
 
-@ total=200
+@ total=200,dt=0.00001
 init G=0.9,F=0.1
-Dt=0.001
+done
