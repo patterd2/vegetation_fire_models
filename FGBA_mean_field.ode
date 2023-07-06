@@ -14,5 +14,5 @@ A'=q*(1-G-F-A)-varphi_A*F*A-gamma*A
 
 
 @ total=200
-init G=0.1
+init G=0.9,F=0.1
 Dt=0.001
