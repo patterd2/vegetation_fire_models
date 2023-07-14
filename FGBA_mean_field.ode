@@ -1,9 +1,9 @@
-p beta_g=1e5,beta_f=1e4,q=1e5
+p beta_g=1e5,beta_f=1e4,q=1e4
 p gamma=1e1
 p varphi_a=1e-1,varphi_g=1e-1
 p mu=1e-3
-p theta_g=0.4,g_0=1e-4,g_1=1e0,s_g=0.05
-p theta_f=0.4,f_0=1e-6,f_1=1e-1,s_f=0.05
+p theta_g=0.4,g_0=1e-4,g_1=1e0,s_g=0.005
+p theta_f=0.4,f_0=1e-6,f_1=1e-1,s_f=0.005
 
 phi_G(G)=(g_0+(g_1-g_0)/(1+exp(-(G-theta_g)/s_g)))
 phi_F(G)=(f_0+(f_1-f_0)/(1+exp(-(G-theta_f)/s_f)))
@@ -13,6 +13,6 @@ G'=mu*F+gamma*A-varphi_G*F*G-phi_G(G)*G-beta_g*(1-G-F-A)*G
 A'=q*(1-G-F-A)-varphi_A*F*A-gamma*A
 
 
-@ total=20,dt=0.00005
+@ total=20,dt=0.00002
 init G=0.9,F=0.1
 done

@@ -20,9 +20,9 @@ beta_F = 1e4; % Rate of fire spread through forest
 beta_G = 1e5; % Rate of fire spread through grass
 xi = 1e-4; % Rate of spontaneous fires
 
-q = 1e5; % Fire quenching rate
+q = 1e4; % Fire quenching rate
 
-sigma_F = 1; % width of Gaussian of forest seeding
+sigma_F = 2; % width of Gaussian of forest seeding
 sigma_B = 0.01;    % width of Gaussian for burning spread over grassland
 sigma_G = 0.01;  % width of Gaussian for flammability of large grass
 
