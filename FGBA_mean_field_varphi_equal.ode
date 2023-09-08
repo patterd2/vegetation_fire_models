@@ -1,6 +1,6 @@
-p beta_g=500,beta_f=100=1,q=300
+p beta_g=500,beta_f=100,q=300
 p gamma=100
-p varphi_a=0.1,varphi_g=0.1
+p varphi=0.1,
 p mu=1e-2
 p theta_g=0.4,g_0=1e-2,g_1=1,s_g=0.05
 p theta_f=0.4,f_0=1e-2,f_1=5,s_f=0.05
@@ -8,9 +8,9 @@ p theta_f=0.4,f_0=1e-2,f_1=5,s_f=0.05
 phi_G(G)=(g_0+(g_1-g_0)/(1+exp(-(G-theta_g)/s_g)))
 phi_F(G)=(f_0+(f_1-f_0)/(1+exp(-(G-theta_f)/s_f)))
 
-F'=varphi_g*F*G+varphi_a*F*A-phi_F(G)*F-beta_f*(1-G-F-A)*F-mu*F
-G'=mu*F+gamma*A-varphi_G*F*G-phi_G(G)*G-beta_g*(1-G-F-A)*G
-A'=q*(1-G-F-A)-varphi_A*F*A-gamma*A
+F'=varphi*F*G+varphi*F*A-phi_F(G)*F-beta_f*(1-G-F-A)*F-mu*F
+G'=mu*F+gamma*A-varphi*F*G-phi_G(G)*G-beta_g*(1-G-F-A)*G
+A'=q*(1-G-F-A)-varphi*F*A-gamma*A
 
 
 @ total=20,dt=0.001

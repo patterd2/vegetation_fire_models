@@ -1,0 +1,15 @@
+tiledlayout(2,1)
+
+% Top plot
+nexttile
+plot(SH_DISK_O2(:,1), SH_DISK_O2(:,2),'-o')
+title('SH Trial: Average O2 vs Time')
+xlabel('Hours after plugging')
+ylabel('Fraction O2, normoxia = 1')
+
+% Bottom plot
+nexttile
+plot(LH_DISK_O2(:,1), LH_DISK_O2(:,2),'-o')
+title('LH Trial: Average O2 vs Time')
+xlabel('Hours after plugging')
+ylabel('Fraction O2, normoxia = 1')
