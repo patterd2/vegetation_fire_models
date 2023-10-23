@@ -1,0 +1,18 @@
+p beta_g=500,beta_f=100=1,q=300
+p gamma=100
+p varphi=0.1
+p mu=1e-2
+p theta_g=0.4,g_0=1e-2,g_1=1,s_g=0.05
+p theta_f=0.4,f_0=1e-2,f_1=1,s_f=0.05
+
+phi_G(G)=(g_0+(g_1-g_0)/(1+exp(-(G-theta_g)/s_g)))
+phi_F(G)=(f_0+(f_1-f_0)/(1+exp(-(G-theta_f)/s_f)))
+
+G'=gamma*A+mu*(1-G-B-A)-varphi*(1-G-B-A)*G+phi_G(G)*G-beta_g*B*G
+B'=phi_G(G)*G+phi_F(G)*(1-G-B-A)+beta_g*G*B+beta_F*(1-G-B-A)*B-q*B
+A'=q*B-gamma*A-varphi*(1-G-B-A)*A
+
+
+@ total=20,dt=0.001
+init G=0.9,A=0.1
+done

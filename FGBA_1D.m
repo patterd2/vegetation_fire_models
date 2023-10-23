@@ -220,7 +220,7 @@ while (t < T)
         end
 
         % Reflect updates to column at index site
-        rate_matrix(site, i) = rate_matrix(i, site);
+        rate_matrix(i, site) = rate_matrix(site, i);
     end
 
     % Update const_rates

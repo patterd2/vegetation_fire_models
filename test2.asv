@@ -1,0 +1,38 @@
+dx = 0.025;
+dy = 0.025;
+
+% Calculate indices of positions
+location_indices(:, 1) = ceil(locations(:, 1)/dx);
+location_indices(:, 2) = ceil(locations(:, 2)/dy);
+
+% Create array of full solution
+Sol_Save = zeros(ceil(L/dx), ceil(L/dy), length(0:dt:T));
+
+% Plot locations of sites
+time_index = 1;
+
+figure(1)
+for i = 1:num_sites
+    if (X(i, time_index) == 0)
+        scatter(location_indices(i, 1), location_indices(i, 2));
+    end
+end
+
+% Plot solution interpolated to a regularly spaced grid
+%image(Test, 'CDataMapping','scaled')
+%image(Sol_Save(:, :, 1));
+
+%im = imagesc(Sol_Save(:, :, 2));
+custom_map = [0.4660 0.6740 0.1880
+    0.8500 0.3250 0.0980
+    0.5 0.5 0.5
+    0.0039 0.1953 0.1250]; %light green, dark green, orange, gray colors
+colormap(custom_map);
+xlabel('time');
+ylabel('space');
+%set(gca,'linewidth',2);
+%set(gca,'FontSize',20);
+
+imdata = getframe(figure(1));
+
+imwrite(imdata.cdata, 'im_test.png')
