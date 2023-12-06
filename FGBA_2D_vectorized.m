@@ -151,7 +151,7 @@ while (t < T)
             prob_GB = GB_rate / eventRatePerSite(site); % Probability of G -> B transition
 
             if (rand() < prob_GB)
-                X(site, k + 1) = 2; % G to B
+                X(site, k + 1) = 2; % G to B transition occurs
 
                 % Adjust indicators
                 is_G(site) = 0;
@@ -163,7 +163,7 @@ while (t < T)
                     B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
             else
-                X(site, k + 1) = 1; % G to F
+                X(site, k + 1) = 1; % G to F transition occurs
 
                 % Adjust indicators
                 is_G(site) = 0;
@@ -182,7 +182,7 @@ while (t < T)
             prob_FG = mu / eventRatePerSite(site); % Probability of F -> G transition
 
             if (rand() < prob_FG)
-                X(site, k + 1) = 0; % F to G
+                X(site, k + 1) = 0; % F to G transition occurs
 
                 % Adjust indicators
                 is_F(site) = 0;
@@ -195,7 +195,7 @@ while (t < T)
                 end
 
             else
-                X(site, k + 1) = 2; % F to B
+                X(site, k + 1) = 2; % F to B transition occurs
 
                 % Adjust indicators
                 is_F(site) = 0;
@@ -226,7 +226,7 @@ while (t < T)
             prob_AG = gamma / eventRatePerSite(site); % Probability of A -> G transition
 
             if (rand() < prob_AG)
-                X(site, k + 1) = 0; % A to G
+                X(site, k + 1) = 0; % A to G transition occurs
 
                 % Adjust indicators
                 is_A(site) = 0;
@@ -237,7 +237,7 @@ while (t < T)
                     G_integral(i, site) = W_G(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
             else
-                X(site, k + 1) = 1; % A to F
+                X(site, k + 1) = 1; % A to F transition occurs
 
                 % Adjust indicators
                 is_A(site) = 0;
