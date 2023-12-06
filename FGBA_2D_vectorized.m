@@ -85,7 +85,7 @@ for i = 1:num_sites
     end
 end
 
-% Gaussian integrals over all sites i
+% Gaussian integrals centered at each site i
 G_integral = zeros(num_sites, num_sites);
 B_integral = zeros(num_sites, num_sites);
 F_integral = zeros(num_sites, num_sites);
