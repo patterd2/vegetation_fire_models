@@ -6,7 +6,7 @@ clear all;
 L = 1;            % Working on [0, L]
 num_sites = 25^2; % Total number of sites in [0, L] x [0, L], must be square number
 T = 0.5;            % Simulation time length in real-time units
-dt = 0.01;        % Length of time step in real-time units
+dt = 0.1;        % Length of time step in real-time units
 dx = 0.005;        % Spatial resolution in x direction 
 dy = 0.005;        % Spatial resolution in y direction
 t0 = 0;           % Start time
@@ -117,7 +117,7 @@ while (t < T)
     k = k + 1;
 
     % Calculate event rate at each site
-    eventRatePerSite = is_G .* (varphi_G * sum(F_integral, 2) + phi_G(sum(G_integral, 2)) + beta_F * sum(B_integral, 2)) ...
+    eventRatePerSite = is_G .* (varphi_G * sum(F_integral, 2) + phi_G(sum(G_integral, 2)) + beta_G * sum(B_integral, 2)) ...
     + is_F .* (mu + phi_F(sum(G_integral, 2)) + beta_F * sum(B_integral, 2)) + ...
     + is_B .* q + ...
     + is_A .* (gamma + varphi_A * sum(F_integral, 2));
@@ -147,7 +147,7 @@ while (t < T)
 
         % Choose transition if site is G
         if (X(site, k) == 0)
-            GB_rate = phi_G(sum(G_integral(site, :))) + beta_F * sum(B_integral(site, :));
+            GB_rate = phi_G(sum(G_integral(site, :))) + beta_G * sum(B_integral(site, :));
             prob_GB = GB_rate / eventRatePerSite(site); % Probability of G -> B transition
 
             if (rand() < prob_GB)
