@@ -1,29 +1,33 @@
 %% Matrix simulation of 2D FGBA system with periodic boundary conditions
+set(0,'defaultaxesfontsize', 20);
+set(0,'defaultAxesXGrid','on');
+set(0,'defaultAxesYGrid','on');
+%%
 % Convention for state labels: 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
-clear all;
-
+tic
 % Parameters
 L = 1;            % Working on [0, L]
-num_sites = 1000; % Total number of sites in [0, L] x [0, L]
-T = 1;            % Simulation time length in real-time units
-dt = 0.05;        % Length of time step in real-time units
-dx = 0.005;        % Spatial resolution in x direction 
+num_sites = 500; % Total number of sites in [0, L] x [0, L], must be square number
+T = 50;            % Simulation time length in real-time units
+dt = 0.01;        % Length of time step in real-time units
+dx = 0.005;        % Spatial resolution in x direction
 dy = 0.005;        % Spatial resolution in y direction
 t0 = 0;           % Start time
 
-varphi_A = 5;  % Rate of forest seeding into ash
-varphi_G = 5;  % Rate of forest seeding into grass
+varphi_A = 1;  % Rate of forest seeding into ash
+varphi_G = 1;  % Rate of forest seeding into grass
 gamma = 50;     % Rate of grass regrowth from ash
 
-beta_F = 5;    % Rate of fire spread through forest
-beta_G = 20;    % Rate of fire spread through grass
+beta_F = 20;    % Rate of fire spread through forest
+beta_G = 100;    % Rate of fire spread through grass
 
 mu = 0.01;        % Rate of tree death due to non-fire causes
 q = 150;         % Fire quenching rate
 
-sigma_B = 0.1;    % width of Gaussian for fire spread
-sigma_F = 0.05;    % width of Gaussian for forest spread
-sigma_G = 0.1;    % width of Gaussian for cascade flammability
+sigma_P = 0.1;   % width of Gaussian of forest seeding
+sigma_B = 0.1;    % width of Gaussian for burning spread over grassland
+sigma_G = 0.1;    % width of Gaussian for flammability of large grass
+sigma_F = 0.1;    % width of Gaussian for flammability of large grass
 
 theta_f = 0.4;    % Forest burning sigmoid center
 f0 = 0;        % Forest burning sigmoid lower bound
@@ -54,7 +58,10 @@ X = zeros(num_sites, 1);
 % Fix locations of sites (x, y)
 locations = L * rand(num_sites, 2);  % NOT SORTED
 
-% Initialize states of sites - one square forest patch at [0.2L, 0.5L] x [0.2L, 0.5L] 
+% Fix square root of number of sites
+sqrt_num_sites = sqrt(num_sites);
+
+% Initialize states of sites - one square forest patch at [0.2L, 0.5L] x [0.2L, 0.5L]
 for i = 1:num_sites
     if (locations(i, 1) < 0.5 * L && locations(i, 1) > 0.2 * L)
         if (locations(i, 2) < 0.5 * L && locations(i, 2) > 0.2 * L)
@@ -85,23 +92,22 @@ end
 G_integral = zeros(num_sites, num_sites);
 B_integral = zeros(num_sites, num_sites);
 F_integral = zeros(num_sites, num_sites);
-    
+
 for i = 1:num_sites
     for j = 1:num_sites
-       if (X(j, 1) == 0) % Integrate over G sites
+        if (X(j, 1) == 0) % Integrate over G sites
             G_integral(i, j) = W_G(locations(i, 1), locations(i, 2), locations(j, 1), locations(j, 2));
-       end
+        end
 
-       if (X(j, 1) == 2) % Integrate over B sites
+        if (X(j, 1) == 2) % Integrate over B sites
             B_integral(i, j) = W_B(locations(i, 1), locations(i, 2), locations(j, 1), locations(j, 2));
-       end
+        end
 
-       if (X(j, 1) == 1) % Integrate over F sites
+        if (X(j, 1) == 1) % Integrate over F sites
             F_integral(i, j) = W_F(locations(i, 1), locations(i, 2), locations(j, 1), locations(j, 2));
-       end
+        end
     end
 end
-
 
 % Use Gillespie algorithm to model transitions over time
 t = 0; % time
@@ -114,9 +120,9 @@ while (t < T)
 
     % Calculate event rate at each site
     eventRatePerSite = is_G .* (varphi_G * sum(F_integral, 2) + phi_G(sum(G_integral, 2)) + beta_G * sum(B_integral, 2)) ...
-    + is_F .* (mu + phi_F(sum(G_integral, 2)) + beta_F * sum(B_integral, 2)) + ...
-    + is_B .* q + ...
-    + is_A .* (gamma + varphi_A * sum(F_integral, 2));
+        + is_F .* (mu + phi_F(sum(G_integral, 2)) + beta_F * sum(B_integral, 2)) + ...
+        + is_B .* q + ...
+        + is_A .* (gamma + varphi_A * sum(F_integral, 2));
 
     % Calculate total intensity over all sites
     totalIntensity = sum(eventRatePerSite);
@@ -126,7 +132,7 @@ while (t < T)
     t = t + NextEvent;
 
     if (t<T) % Event occurs before end of simulation
-        % Append event time to Time array    
+        % Append event time to Time array
         Times(end + 1) = t;
 
         % Choose index of site where event occurs
@@ -137,7 +143,7 @@ while (t < T)
         while U > CDF(site)
             site = site + 1;
         end
-        
+
         % Append states of all sites to Solution array
         X(:, k + 1) = X(:, k);
 
@@ -147,7 +153,7 @@ while (t < T)
             prob_GB = GB_rate / eventRatePerSite(site); % Probability of G -> B transition
 
             if (rand() < prob_GB)
-                X(site, k + 1) = 2; % G to B transition occurs
+                X(site, k + 1) = 2; % G to B
 
                 % Adjust indicators
                 is_G(site) = 0;
@@ -159,7 +165,7 @@ while (t < T)
                     B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
             else
-                X(site, k + 1) = 1; % G to F transition occurs
+                X(site, k + 1) = 1; % G to F
 
                 % Adjust indicators
                 is_G(site) = 0;
@@ -170,7 +176,7 @@ while (t < T)
                 for i = 1:num_sites
                     F_integral(i, site) = W_F(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
-            end           
+            end
         end
 
         % Choose transition if site is F
@@ -178,7 +184,7 @@ while (t < T)
             prob_FG = mu / eventRatePerSite(site); % Probability of F -> G transition
 
             if (rand() < prob_FG)
-                X(site, k + 1) = 0; % F to G transition occurs
+                X(site, k + 1) = 0; % F to G
 
                 % Adjust indicators
                 is_F(site) = 0;
@@ -191,7 +197,7 @@ while (t < T)
                 end
 
             else
-                X(site, k + 1) = 2; % F to B transition occurs
+                X(site, k + 1) = 2; % F to B
 
                 % Adjust indicators
                 is_F(site) = 0;
@@ -202,27 +208,27 @@ while (t < T)
                 for i = 1:num_sites
                     B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
-            end            
+            end
         end
-    
+
         % Choose transition if site is B
         if (X(site, k) == 2)
             X(site, k + 1) = 3; % fire must get quenched
 
             % Adjust indicators
-                is_B(site) = 0;
-                is_A(site) = 1;
+            is_B(site) = 0;
+            is_A(site) = 1;
 
-                % Adjust spatial integrals
-                B_integral(:, site) = zeros(num_sites, 1);
+            % Adjust spatial integrals
+            B_integral(:, site) = zeros(num_sites, 1);
         end
-    
+
         % Choose transition if site is A
         if (X(site, k) == 3)
             prob_AG = gamma / eventRatePerSite(site); % Probability of A -> G transition
 
             if (rand() < prob_AG)
-                X(site, k + 1) = 0; % A to G transition occurs
+                X(site, k + 1) = 0; % A to G
 
                 % Adjust indicators
                 is_A(site) = 0;
@@ -233,7 +239,7 @@ while (t < T)
                     G_integral(i, site) = W_G(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
             else
-                X(site, k + 1) = 1; % A to F transition occurs
+                X(site, k + 1) = 1; % A to F
 
                 % Adjust indicators
                 is_A(site) = 0;
@@ -243,7 +249,7 @@ while (t < T)
                 for i = 1:num_sites
                     F_integral(i, site) = W_F(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
                 end
-            end            
+            end
         end
 
     else % Finish simulation if event occurs after end time of simulation
@@ -252,61 +258,95 @@ while (t < T)
     end
 
 end
-toc
-%% 
-% Create array of full solution
-Temp_Sol = zeros(num_sites, length(0:dt:T));
-Sol_Save = zeros(length(0:dx:L), length(0:dy:L), length(0:dt:T));
-
-% Interpolate temporally
-for i = 1:num_sites
-    Temp_Sol(i, :)= floor(interp1(Times, X(i,:), 0:dt:Times(end)));
-end
-
-% Interpolate spatially
-for i = 1:length(0:dt:T)
-    F = scatteredInterpolant(locations(:,1), locations(:,2), Temp_Sol(:, i));
-    F.Method = 'nearest';
-
-    for j = 1:length(0:dx:L)
-        for k = 1:length(0:dy:L)
-            Sol_Save(j, k, i) = floor(F(j*dx, k*dy));
-        end
+toc % time the calculations of the Gillespie algorithm
+%% Different approach to plotting space-time dynamics
+figure(1);
+% Set up color map
+custom_map = [0.4660 0.6740 0.1880
+    0.0039 0.1953 0.1250
+    0.8500 0.3250 0.0980
+    0.5 0.5 0.5]; %light green, dark green, orange, gray colors
+colormap(custom_map);
+grid on;
+for i = 1:length(Times)
+    if mod(i,100) == 0
+        str = ['Time = ',num2str(Times(i))];
+        figure(1);
+        title(str);
+        scatter(locations(:,1),locations(:,2),150,X(:,i),...
+            'filled','MarkerFaceAlpha',0.2);
+        hold on;
     end
 end
+%% Plot the dynamics of the cover proportions
+% 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
+figure(2);
+stairs(Times,sum(X==0,1)./num_sites,'color',[0.4660 0.6740 0.1880],'LineWidth',3);
+hold on;
+stairs(Times,sum(X==1,1)./num_sites,'color',[0.0039 0.1953 0.1250],'LineWidth',3);
+stairs(Times,sum(X==2,1)./num_sites,'color',[0.8500 0.3250 0.0980],'LineWidth',3);
+stairs(Times,sum(X==3,1)./num_sites,'color',[0.5 0.5 0.5],'LineWidth',3);
+legend('Grass','Forest','Burning','Ash');
+xlabel('time');
 
-% Make directory to save images
-%folderName = 'FGBA_2D_test';
-%mkdir(folderName);
-
-% Save images to folder
-for i = 1:length(0:dt:T)
-
-    % Plot solution interpolated to a regularly spaced grid
-    figure(1);
-    im = imagesc(Sol_Save(:,:,i));
-
-    % Set up color map
-    custom_map = [0.4660 0.6740 0.1880
-        0.0039 0.1953 0.1250
-        0.8500 0.3250 0.0980
-        0.5 0.5 0.5]; %light green, dark green, orange, gray colors
-    colormap(custom_map);
-    clim manual
-    clim([0 3]);
-
-    % Plot labels
-    xlabel('x');
-    ylabel('y');
-    set(gca,'linewidth',2);
-    set(gca,'FontSize',20);
-    
-    % Save image to directory
-    %imdata = getframe(figure(1));
-    %imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.2f') '.png']);
-end
-
-
+%%
+% tic % time the plotting
+% % Create array of full solution
+% Temp_Sol = zeros(num_sites, length(0:dt:T));
+% Sol_Save = zeros(length(0:dx:L), length(0:dy:L), length(0:dt:T));
+%
+% % Interpolate temporally
+% for i = 1:num_sites
+%     Temp_Sol(i, :)= floor(interp1(Times, X(i,:), 0:dt:Times(end)));
+% end
+% toc
+% %%
+% tic
+% % Interpolate spatially
+% for i = 1:length(0:dt:T)
+%     F = scatteredInterpolant(locations(:,1), locations(:,2), Temp_Sol(:, i));
+%     F.Method = 'nearest';
+%     for j = 1:length(0:dx:L)
+%         for k = 1:length(0:dy:L)
+%             Sol_Save(j, k, i) = floor(F(j*dx, k*dy));
+%         end
+%     end
+% end
+% toc
+% % Make directory to save images
+% %folderName = 'FGBA_2D_test';
+% %mkdir(folderName);
+%
+% %%
+% tic
+% % Save images to folder
+% for i = 1:length(0:dt:T)
+%
+%     % Plot solution interpolated to a regularly spaced grid
+%     figure(1);
+%     im = imagesc(Sol_Save(:,:,i));
+%
+%     % Set up color map
+%     custom_map = [0.4660 0.6740 0.1880
+%         0.0039 0.1953 0.1250
+%         0.8500 0.3250 0.0980
+%         0.5 0.5 0.5]; %light green, dark green, orange, gray colors
+%     colormap(custom_map);
+%     clim manual
+%     clim([0 3]);
+%
+%     % Plot labels
+%     xlabel('x');
+%     ylabel('y');
+%     set(gca,'linewidth',2);
+%     set(gca,'FontSize',20);
+%
+%     % Save image to directory
+%     %imdata = getframe(figure(1));
+%     %imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.2f') '.png']);
+% end
+%
+% toc
 
 
 

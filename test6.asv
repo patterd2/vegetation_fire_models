@@ -4,8 +4,9 @@ clear all;
 
 % Parameters
 L = 1;            % Working on [0, L]
-num_sites = 3000; % Total number of sites in [0, L] x [0, L]
+num_sites = 1000; % Total number of sites in [0, L] x [0, L]
 T = 1;            % Simulation time length in real-time units
+tau = 0.5;        % Time interval of tau leap
 dt = 0.05;        % Length of time step in real-time units
 dx = 0.005;        % Spatial resolution in x direction 
 dy = 0.005;        % Spatial resolution in y direction
@@ -106,7 +107,7 @@ end
 % Use Gillespie algorithm to model transitions over time
 t = 0; % time
 k = 0; % time index
-Times = [0]; % array to record times of all events
+Times = 0:tau:T; % array to record times of all events
 
 tic;
 while (t < T)
@@ -118,99 +119,89 @@ while (t < T)
     + is_B .* q + ...
     + is_A .* (gamma + varphi_A * sum(F_integral, 2));
 
-    % Calculate total intensity over all sites
-    totalIntensity = sum(eventRatePerSite);
+    % Calculate expected number of reactions in [t, t + tau)
+    num_reactions = poissrnd(eventRatePerSite * tau);
 
-    % Find time of next event
-    NextEvent = -log(1 - rand()) / totalIntensity;
-    t = t + NextEvent;
+    % Indicate sites where a reaction occurs
+    reaction_happens = heaviside(num_reactions - (1 / 2));
 
-    if (t<T) % Event occurs before end of simulation
-        % Append event time to Time array    
-        Times(end + 1) = t;
-
-        % Choose index of site where event occurs
-        CDF = cumsum(eventRatePerSite) / totalIntensity;
-        U = rand();
-        site = 1;
-
-        while U > CDF(site)
-            site = site + 1;
-        end
-        
+   if (t<T) % Event occurs before end of simulation
         % Append states of all sites to Solution array
         X(:, k + 1) = X(:, k);
 
-        % Choose transition if site is G
-        if (X(site, k) == 0)
-            GB_rate = phi_G(sum(G_integral(site, :))) + beta_G * sum(B_integral(site, :));
-            prob_GB = GB_rate / eventRatePerSite(site); % Probability of G -> B transition
+        % Update states variable
+        for site = 1:num_sites
 
-            if (rand() < prob_GB)
-                X(site, k + 1) = 2; % G to B transition occurs
+            % Choose transition if site is G
+            if (X(site, k) == 0)
+                GB_rate = phi_G(sum(G_integral(site, :))) + beta_G * sum(B_integral(site, :));
+                prob_GB = GB_rate / eventRatePerSite(site); % Probability of G -> B transition
 
-                % Adjust indicators
-                is_G(site) = 0;
-                is_B(site) = 1;
+                if (rand() < prob_GB)
+                    X(site, k + 1) = 2; % G to B transition occurs
 
-                % Adjust spatial integrals
-                G_integral(:, site) = zeros(num_sites, 1);
-                for i = 1:num_sites
-                    B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
-                end
-            else
-                X(site, k + 1) = 1; % G to F transition occurs
+                    % Adjust indicators
+                    is_G(site) = 0;
+                    is_B(site) = 1;
 
-                % Adjust indicators
-                is_G(site) = 0;
-                is_F(site) = 1;
+                    % Adjust spatial integrals
+                    G_integral(:, site) = zeros(num_sites, 1);
+                    for i = 1:num_sites
+                        B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
+                    end
+                else
+                    X(site, k + 1) = 1; % G to F transition occurs
 
-                % Adjust spatial integrals
-                G_integral(:, site) = zeros(num_sites, 1);
-                for i = 1:num_sites
-                    F_integral(i, site) = W_F(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
-                end
-            end           
-        end
+                    % Adjust indicators
+                    is_G(site) = 0;
+                    is_F(site) = 1;
 
-        % Choose transition if site is F
-        if (X(site, k) == 1)
-            prob_FG = mu / eventRatePerSite(site); % Probability of F -> G transition
+                    % Adjust spatial integrals
+                    G_integral(:, site) = zeros(num_sites, 1);
+                    for i = 1:num_sites
+                        F_integral(i, site) = W_F(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
+                    end
+                end           
+            end
 
-            if (rand() < prob_FG)
-                X(site, k + 1) = 0; % F to G transition occurs
+            % Choose transition if site is F
+            if (X(site, k) == 1)
+                prob_FG = mu / eventRatePerSite(site); % Probability of F -> G transition
 
-                % Adjust indicators
-                is_F(site) = 0;
-                is_G(site) = 1;
+                if (rand() < prob_FG)
+                    X(site, k + 1) = 0; % F to G transition occurs
 
-                % Adjust spatial integrals
-                F_integral(:, site) = zeros(num_sites, 1);
-                for i = 1:num_sites
-                    G_integral(i, site) = W_G(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
-                end
+                    % Adjust indicators
+                    is_F(site) = 0;
+                    is_G(site) = 1;
 
-            else
-                X(site, k + 1) = 2; % F to B transition occurs
+                    % Adjust spatial integrals
+                    F_integral(:, site) = zeros(num_sites, 1);
+                    for i = 1:num_sites
+                        G_integral(i, site) = W_G(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
+                    end
 
-                % Adjust indicators
-                is_F(site) = 0;
-                is_B(site) = 1;
+                else
+                    X(site, k + 1) = 2; % F to B transition occurs
 
-                % Adjust spatial integrals
-                F_integral(:, site) = zeros(num_sites, 1);
-                for i = 1:num_sites
-                    B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
-                end
-            end            
-        end
+                    % Adjust indicators
+                    is_F(site) = 0;
+                    is_B(site) = 1;
+
+                    % Adjust spatial integrals
+                    F_integral(:, site) = zeros(num_sites, 1);
+                    for i = 1:num_sites
+                        B_integral(i, site) = W_B(locations(i, 1), locations(i, 2), locations(site, 1), locations(site, 2));
+                    end
+                end            
+            end
     
-        % Choose transition if site is B
-        if (X(site, k) == 2)
-            X(site, k + 1) = 3; % fire must get quenched
+            % Choose transition if site is B
+            if (X(site, k) == 2)
+                X(site, k + 1) = 3; % fire must get quenched
 
-            % Adjust indicators
-                is_B(site) = 0;
+                % Adjust indicators
+                    is_B(site) = 0;
                 is_A(site) = 1;
 
                 % Adjust spatial integrals
@@ -245,6 +236,10 @@ while (t < T)
                 end
             end            
         end
+
+
+        end
+
 
     else % Finish simulation if event occurs after end time of simulation
         Times(end + 1) = T;
