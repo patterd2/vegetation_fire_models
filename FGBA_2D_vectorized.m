@@ -25,7 +25,7 @@ q = 10;         % Fire quenching rate
 mu = 0.01;       % Rate of tree death due to non-fire causes
 
 sigma_P = 0.1;   % width of Gaussian of forest seeding
-sigma_B = 1.1;    % width of Gaussian for burning spread over grassland
+sigma_B = 0.19;    % width of Gaussian for burning spread over grassland
 sigma_G = 0.1;    % width of Gaussian for flammability of large grass
 sigma_F = 0.1;    % width of Gaussian for flammability of large grass
 
@@ -65,6 +65,44 @@ sqrt_num_sites = sqrt(num_sites);
 %for i = 1:num_sites
     %if (locations(i, 1) < 0.5 * L && locations(i, 1) > 0.2 * L)
         %if (locations(i, 2) < 0.5 * L && locations(i, 2) > 0.2 * L)
+            %X(i, 1) = 1;
+        %end
+    %end
+%end
+
+% Initialize states of sites - random mixture of grass and forest
+%prob_forest = 0.4;
+%for i = 1:num_sites
+    %if (rand < prob_forest)
+        %X(i, 1) = 1;
+    %end
+%end
+
+% Initialize states of sites - four disjoint patches of forest
+%for i = 1:num_sites
+    %if (locations(i, 1) < 0.375 * L && locations(i, 1) > 0.125 * L)
+        %if (locations(i, 2) < 0.375 * L && locations(i, 2) > 0.125 * L)
+            %X(i, 1) = 1;
+        %end
+    %end
+%end
+%for i = 1:num_sites
+    %if (locations(i, 1) < 0.875 * L && locations(i, 1) > 0.625 * L)
+        %if (locations(i, 2) < 0.375 * L && locations(i, 2) > 0.125 * L)
+            %X(i, 1) = 1;
+        %end
+    %end
+%end
+%for i = 1:num_sites
+    %if (locations(i, 1) < 0.375 * L && locations(i, 1) > 0.125 * L)
+        %if (locations(i, 2) < 0.875 * L && locations(i, 2) > 0.625 * L)
+            %X(i, 1) = 1;
+        %end
+    %end
+%end
+%for i = 1:num_sites
+    %if (locations(i, 1) < 0.875 * L && locations(i, 1) > 0.625 * L)
+        %if (locations(i, 2) < 0.875 * L && locations(i, 2) > 0.625 * L)
             %X(i, 1) = 1;
         %end
     %end
