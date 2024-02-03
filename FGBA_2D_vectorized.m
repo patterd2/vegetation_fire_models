@@ -1,4 +1,6 @@
 %% Matrix simulation of 2D FGBA system with periodic boundary conditions
+clear
+close all
 set(0,'defaultaxesfontsize', 20);
 set(0,'defaultAxesXGrid','on');
 set(0,'defaultAxesYGrid','on');
@@ -6,9 +8,9 @@ set(0,'defaultAxesYGrid','on');
 % Convention for state labels: 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
 tic
 % Parameters
-L = 1;            % Working on [0, L]
-num_sites = 500; % Total number of sites in [0, L] x [0, L]
-T = 10;            % Simulation time length in real-time units
+L = 5;            % Working on [0, L]
+num_sites = 1000; % Total number of sites in [0, L] x [0, L]
+T = 1;            % Simulation time length in real-time units
 dt = 0.01;        % Length of time step in real-time units
 dx = 0.05;        % Spatial resolution in x direction
 dy = 0.05;        % Spatial resolution in y direction
@@ -18,14 +20,14 @@ varphi_A = 0.1;  % Rate of forest seeding into ash
 varphi_G = 0.1;  % Rate of forest seeding into grass
 
 beta_F = 10;    % Rate of fire spread through forest
-beta_G = 50;    % Rate of fire spread through grass
+beta_G = 200000;    % Rate of fire spread through grass
 gamma = 10;     % Rate of grass regrowth from ash
-q = 10;         % Fire quenching rate
+q = 10000;         % Fire quenching rate
 
 mu = 0.01;       % Rate of tree death due to non-fire causes
 
 sigma_P = 0.1;   % width of Gaussian of forest seeding
-sigma_B = 0.19;    % width of Gaussian for burning spread over grassland
+sigma_B = 1;    % width of Gaussian for burning spread over grassland
 sigma_G = 0.1;    % width of Gaussian for flammability of large grass
 sigma_F = 0.1;    % width of Gaussian for flammability of large grass
 
@@ -62,13 +64,13 @@ locations = L * rand(num_sites, 2);  % NOT SORTED
 sqrt_num_sites = sqrt(num_sites);
 
 % Initialize states of sites - one square forest patch at [0.2L, 0.5L] x [0.2L, 0.5L]
-%for i = 1:num_sites
-    %if (locations(i, 1) < 0.5 * L && locations(i, 1) > 0.2 * L)
-        %if (locations(i, 2) < 0.5 * L && locations(i, 2) > 0.2 * L)
-            %X(i, 1) = 1;
-        %end
-    %end
-%end
+for i = 1:num_sites
+    if (locations(i, 1) < 0.5 * L && locations(i, 1) > 0.2 * L)
+        if (locations(i, 2) < 0.5 * L && locations(i, 2) > 0.2 * L)
+            X(i, 1) = 2;
+        end
+    end
+end
 
 % Initialize states of sites - random mixture of grass and forest
 %prob_forest = 0.4;
@@ -153,6 +155,7 @@ k = 0; % time index
 Times = [0]; % array to record times of all events
 
 tic;
+f = waitbar(0)
 while (t < T)
     k = k + 1;
 
@@ -295,7 +298,11 @@ while (t < T)
         X(:, k + 1) = X(:, k);
     end
 
+    waitbar(Times(end)/T, f)
+
 end
+close(f)
+
 toc % time the calculations of the Gillespie algorithm
 %% Different approach to plotting space-time dynamics
 figure(1);
@@ -326,6 +333,7 @@ stairs(Times,sum(X==2,1)./num_sites,'color',[0.8500 0.3250 0.0980],'LineWidth',3
 stairs(Times,sum(X==3,1)./num_sites,'color',[0.5 0.5 0.5],'LineWidth',3);
 legend('Grass','Forest','Burning','Ash');
 xlabel('time');
+
 
 %%
 % tic % time the plotting

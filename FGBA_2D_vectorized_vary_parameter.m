@@ -8,10 +8,10 @@ set(0,'defaultAxesYGrid','on');
 % Convention for state labels: 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
 
 % Parameter being varied (REMOVE FROM LOOP)
-param_nums = [0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50];
+param_nums = [0.01, 0.1, 1, 2];
 param_name = 'sigma_B';
 
-folderName = ['vary_' param_name];
+folderName = ['vary6_' param_name];
 mkdir(folderName);
 fig_num = 1;
 
@@ -22,8 +22,8 @@ for n = 1:size(param_nums, 2)
     fprintf(['\n' param_name '=' num2str(param_value) '\n'])
 
     % Parameters
-    L = 1;            % Working on [0, L]
-    num_sites = 500; % Total number of sites in [0, L] x [0, L]
+    L = 5;            % Working on [0, L]
+    num_sites = 5000; % Total number of sites in [0, L] x [0, L]
     T = 10;            % Simulation time length in real-time units
     t0 = 0;           % Start time
     
@@ -31,9 +31,9 @@ for n = 1:size(param_nums, 2)
     varphi_G = 0.1;  % Rate of forest seeding into grass
     
     beta_F = 10;    % Rate of fire spread through forest
-    beta_G = 50;    % Rate of fire spread through grass
+    beta_G = 200;    % Rate of fire spread through grass
     gamma = 10;     % Rate of grass regrowth from ash
-    q = 30;         % Fire quenching rate
+    q = 10;         % Fire quenching rate
     
     mu = 0.01;       % Rate of tree death due to non-fire causes
     
