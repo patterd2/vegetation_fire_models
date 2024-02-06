@@ -6,7 +6,7 @@ set(0,'defaultAxesXGrid','on');
 set(0,'defaultAxesYGrid','on');
 
 % Make directory to save images
-folderName = 'FGBA_2D_test_forest_timescale';
+folderName = 'FGBA_2D_grass_timescale';
 mkdir(folderName);
 
 %%
@@ -15,10 +15,10 @@ tic
 % Parameters
 L = 5;            % Working on [0, L]
 num_sites = 1000; % Total number of sites in [0, L] x [0, L]
-T = 10;            % Simulation time length in real-time units
-dt = 0.01;        % Length of time step in real-time units
-dx = 0.05;        % Spatial resolution in x direction
-dy = 0.05;        % Spatial resolution in y direction
+T = 0.2;            % Simulation time length in real-time units
+dt = 0.001;        % Length of time step in real-time units
+dx = 0.01;        % Spatial resolution in x direction
+dy = 0.01;        % Spatial resolution in y direction
 t0 = 0;           % Start time
 
 varphi_A = 0.1;  % Rate of forest seeding into ash
@@ -367,6 +367,7 @@ for i = 1:num_sites
 end
 
 % Compute closest site grid
+f = waitbar(0, 'computing spatial interpolation');
 closest_site = zeros(length(0:dx:L), length(0:dy:L));
 for j = 1:length(0:dx:L)
     for k = 1:length(0:dy:L)
@@ -383,8 +384,11 @@ for j = 1:length(0:dx:L)
          end
 
          closest_site(j, k) = closest_site_index;
-     end
- end
+    end
+
+    waitbar(j / length(0:dx:L), f)
+end
+close(f)
 
 % Interpolate spatially
 for i = 1:length(0:dt:T)
@@ -396,35 +400,46 @@ for i = 1:length(0:dt:T)
 end
 toc
 
- %%
- tic
- % Save images to folder
- for i = 1:length(0:dt:T)
+%%
+% Make video
+video = VideoWriter([folderName '/FGBA.avi']); %create the video object
+video.FrameRate = 10;
+open(video); %open the file for writing
 
-     % Plot solution interpolated to a regularly spaced grid
-     figure(2);
-     im = imagesc(Sol_Save(:,:,i));
-     daspect([1 1 0.2])
+f = waitbar(0, 'writing video');
+% Save images to folder
+for i = 1:length(0:dt:T)
 
-     % Set up color map
-     custom_map = [0.4660 0.6740 0.1880
-         0.0039 0.1953 0.1250
-         0.8500 0.3250 0.0980
-         0.5 0.5 0.5]; %light green, dark green, orange, gray colors
-     colormap(custom_map);
-     clim manual
-     clim([0 3]);
+    % Plot solution interpolated to a regularly spaced grid
+    figure(2);
+    im = imagesc(Sol_Save(:,:,i));
+    daspect([1 1 0.2])
 
-     % Plot labels
-     xlabel('x');
-     ylabel('y');
-     set(gca,'linewidth',2);
-     set(gca,'FontSize',20);
+    % Set up color map
+    custom_map = [0.4660 0.6740 0.1880
+        0.0039 0.1953 0.1250
+        0.8500 0.3250 0.0980
+        0.5 0.5 0.5]; %light green, dark green, orange, gray colors
+    colormap(custom_map);
+    clim manual
+    clim([0 3]);
 
-     % Save image to directory
-     imdata = getframe(figure(2));
-     imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
- end
+    % Plot labels
+    xlabel('x');
+    ylabel('y');
+    set(gca,'linewidth',2);
+    set(gca,'FontSize',20);
 
-% toc
+    % Save image to directory
+    imdata = getframe(figure(2));
+    imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
+
+    % Add image to video
+    I = imread([folderName '/t=' num2str(dt*i, '%2.6f') '.png']); %read the next image
+    writeVideo(video, I); %write the image to file
+
+    waitbar(i / length(0:dt:T), f)
+end
+close(f)
+close(video); %close the file
 
