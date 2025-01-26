@@ -1,9 +1,0 @@
-p alpha=0.2, r=1
-p t2=0.4,f0=0.1,f1=0.9,s2=0.05
-
-phi(G)=(f0+(f1-f0)/(1+exp(-(G-t2)/s2)))
-
-G'=(1-G)*phi(G)-alpha*G*(1-G)*(1-(1-G)/r)
-
-@ total=200
-init G=0.1

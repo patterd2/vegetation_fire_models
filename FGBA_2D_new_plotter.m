@@ -6,23 +6,23 @@ set(0,'defaultAxesXGrid','on');
 set(0,'defaultAxesYGrid','on');
 
 % Parameters
-L = 100;            % Working on [0, L]
+L = 1;            % Working on [0, L]
 num_sites = 1000; % Total number of sites in [0, L] x [0, L]
 T = 0.01;            % Simulation time length in real-time units
 dt = 0.0001;        % Length of time step in real-time units
-dx = 1;        % Spatial resolution in x direction
-dy = 1;        % Spatial resolution in y direction
+dx = 0.0025;        % Spatial resolution in x direction
+dy = 0.0025;        % Spatial resolution in y direction
 t0 = 0;           % Start time
 
 % Parameter being varied (REMOVE FROM LOOP)
-param_nums = 10^7;
+param_nums = 5e4;
 %param_nums = 10^5 * 1.5;
 param_name = 'beta_G';
 
 fig_num = 1;
 
 % Choose type of initial state
-initial_state = 5; 
+initial_state = 1; 
 %1 = grass + fire patch; 2 = grass/forest mixture + fire patch; 3 = one chunk of forest; 4 = disjoint forest
 make_video = true;
 
@@ -36,7 +36,7 @@ for n = 1:size(param_nums, 2)
     fprintf(['\n' param_name '=' num2str(param_value) '\n'])
 
     % Make directory to save images
-    folderName = 'test_fire_spread_grass';
+    folderName = 'timescale_fire';
     mkdir(folderName);
     
     % Parameters
@@ -45,27 +45,27 @@ for n = 1:size(param_nums, 2)
     
     beta_F = 10^4;    % Rate of fire spread through forest
     %beta_G = 10^5;    % Rate of fire spread through grass
-    gamma = 10^2;     % Rate of grass regrowth from ash
+    gamma = 500;     % Rate of grass regrowth from ash
     %q = 10^3;         % Fire quenching rate
-    q = 0;
+    q = 2e4;
     
     mu = 0.01;       % Rate of tree death due to non-fire causes
     
-    sigma_P = 5;   % width of Gaussian of forest seeding
-    sigma_B = 10;    % width of Gaussian for burning spread over grassland
-    sigma_G = 5;    % width of Gaussian for flammability of large grass
-    sigma_F = 5;    % width of Gaussian for flammability of large grass
+    sigma_P = 0.05;   % width of Gaussian of forest seeding
+    sigma_B = 0.05;    % width of Gaussian for burning spread over grassland
+    sigma_G = 0.05;    % width of Gaussian for flammability of large grass
+    sigma_F = 0.05;    % width of Gaussian for flammability of large grass
     
-    theta_F = 0.4;    % Forest burning sigmoid center
+    theta_F = 0.6;    % Forest burning sigmoid center
     f0 = 0.01;        % Forest burning sigmoid lower bound
-    f1 = 0.1;         % Forest burning sigmoid upper bound
+    f1 = 0.05;         % Forest burning sigmoid upper bound
     s_F = 0.05;       %orest burning sigmoid width
     
-    theta_G = 0.4;    % Grass burning sigmoid center
+    theta_G = 0.6;    % Grass burning sigmoid center
     %g0 = 0.01;        % Grass burning sigmoid lower bound
-    g0 = 0;
+    g0 = 0.01;
     %g1 = 1;         % Grass burning sigmoid upper bound
-    g1 = 0;
+    g1 = 0.1;
     s_G = 0.05;       % Grass burning sigmoid width
 
     % Save all parameters first time
@@ -106,8 +106,6 @@ for n = 1:size(param_nums, 2)
         end
     elseif (initial_state == 2) % random mixture of grass and forest and fire patch
         prob_forest = 0.4;
-        prob_ash = 0.6;
-        prob_grass = 0.2;
         for i = 1:num_sites
             if (rand < prob_forest)
                 X(i, 1) = 1;
@@ -492,54 +490,7 @@ for n = 1:size(param_nums, 2)
         end
         close(f)
         close(video); %close the file
-
-        %% Compute velocity
-        x_slices = size(Sol_Save, 1);
-        y_slices = size(Sol_Save, 1);
-        t_slices = size(Sol_Save, 3);
-        prop_fire = zeros(y_slices, t_slices);
-        coeffvals = zeros(t_slices, 4);
-
-        x_positions = linspace(-L / 2, L / 2, x_slices);
-
-        % Fit function
-        x0 = [L/6, L/6, 0.01, 0.01];
-        arctan = fittype( @(x1, x2, b1, b2, x) (1/pi) * (atan((-x + x1) / b1) + atan((x + x2) / b2)));
-
-        f = waitbar(0, 'fitting functions');
-        for i = 1:t_slices
-            for j = 1:y_slices
-                % Compute proportion burning along y slices
-                prop_fire(j, i) = sum(Sol_Save(j, :, i)) / (2 * x_slices);
-            end
-
-            % Fit arctan function
-            [fitted_curve, gof] = fit(x_positions', prop_fire(:, i), arctan,'StartPoint', x0);
-            coeffvals(i, :) = coeffvalues(fitted_curve);
-
-            waitbar(i / t_slices, f)
-        end
-        close(f)
-
-        %% Plot centers
-        times = linspace(0, T, t_slices);
-
-        plot(times, coeffvals(:, 1))
-        hold on
-        plot(times, coeffvals(:, 2))
-
-        %% Calculate speeds
-        displacements = zeros(t_slices - 2, 2);
-        for i = 2:(t_slices - 1)
-            displacements(i - 1, 1) = coeffvals(i + 1, 1) - coeffvals(i - 1, 1);
-            displacements(i - 1, 2) = coeffvals(i + 1, 2) - coeffvals(i - 1, 2);
-        end
-
-        velocities = displacements ./ (2 * dt);
-
-        plot(times(2:(end - 1))', velocities(:, 1))
-        hold on 
-        plot(times(2:(end - 1))', velocities(:, 2))
+     
     end
 
     fig_num = fig_num + 1;
