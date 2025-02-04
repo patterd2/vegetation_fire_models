@@ -8,43 +8,40 @@ set(0,'defaultAxesYGrid','on');
 % Parameters
 L = 1;            % Working on [0, L]
 num_sites = 1000; % Total number of sites in [0, L] x [0, L]
-T = 0.01;            % Simulation time length in real-time units
+T = 0.04;            % Simulation time length in real-time units
 dt = 0.0001;        % Length of time step in real-time units
 dx = 0.0025;        % Spatial resolution in x direction
 dy = 0.0025;        % Spatial resolution in y direction
 t0 = 0;           % Start time
 
-% Parameter being varied (REMOVE FROM LOOP)
-param_nums = 5e4;
-%param_nums = 10^5 * 1.5;
-param_name = 'beta_G';
 
 fig_num = 1;
 
 % Choose type of initial state
 initial_state = 1; 
-%1 = grass + fire patch; 2 = grass/forest mixture + fire patch; 3 = one chunk of forest; 4 = disjoint forest
+%1 = grass + fire patch; 
+% 2 = grass/forest mixture + fire patch; 
+% 3 = one chunk of forest; 
+% 4 = disjoint forest
+% 5 = grass only;
 make_video = true;
+save_images = true;
 
 %% Begin loop
-for n = 1:size(param_nums, 2)
+for n = 1:1
     % Convention for state labels: 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
     tic
 
-    param_value = param_nums(n);
-    beta_G = param_value;
-    fprintf(['\n' param_name '=' num2str(param_value) '\n'])
-
     % Make directory to save images
-    folderName = 'timescale_fire';
+    folderName = 'timescale_fire_v3';
     mkdir(folderName);
     
     % Parameters
     varphi_A = 0.1;  % Rate of forest seeding into ash
     varphi_G = 0.1;  % Rate of forest seeding into grass
     
-    beta_F = 10^4;    % Rate of fire spread through forest
-    %beta_G = 10^5;    % Rate of fire spread through grass
+    beta_F = 1e4;    % Rate of fire spread through forest
+    beta_G = 5e4;    % Rate of fire spread through grass
     gamma = 500;     % Rate of grass regrowth from ash
     %q = 10^3;         % Fire quenching rate
     q = 2e4;
@@ -52,7 +49,7 @@ for n = 1:size(param_nums, 2)
     mu = 0.01;       % Rate of tree death due to non-fire causes
     
     sigma_P = 0.05;   % width of Gaussian of forest seeding
-    sigma_B = 0.05;    % width of Gaussian for burning spread over grassland
+    sigma_B = 0.03;    % width of Gaussian for burning spread over grassland
     sigma_G = 0.05;    % width of Gaussian for flammability of large grass
     sigma_F = 0.05;    % width of Gaussian for flammability of large grass
     
@@ -98,8 +95,8 @@ for n = 1:size(param_nums, 2)
     %% Initialize states of sites
     if (initial_state == 1) % one square fire patch at [0.45L, 0.55L] x [0.45L, 0.55L]
         for i = 1:num_sites
-            if (locations(i, 1) < 0.55 * L && locations(i, 1) > 0.45 * L)
-                if (locations(i, 2) < 0.55 * L && locations(i, 2) > 0.45 * L)
+            if (locations(i, 1) < 0.525 * L && locations(i, 1) > 0.475 * L)
+                if (locations(i, 2) < 0.525 * L && locations(i, 2) > 0.475 * L)
                     X(i, 1) = 2;
                 end
             end
@@ -155,11 +152,9 @@ for n = 1:size(param_nums, 2)
                 end
             end
         end
-    elseif (initial_state == 5) % 1/3 fire, 2/3 grass
+    elseif (initial_state == 5) % all grass
         for i = 1:num_sites
-            if (locations(i, 1) >  (L / 3) && locations(i, 1) < (2 * L / 3))
-                    X(i, 1) = 2;
-            end
+            X(i, 1) = 0;
         end
     end
     
@@ -396,7 +391,7 @@ for n = 1:size(param_nums, 2)
     
     % Save X variables
     save([folderName '/X.mat'], 'X','-v7.3')
-    
+    save([folderName '/Times.mat'], 'Times','-v7.3')
     
     %%
     tic % time the plotting
@@ -456,7 +451,8 @@ for n = 1:size(param_nums, 2)
         for i = 1:length(0:dt:T)
         
             % Plot solution interpolated to a regularly spaced grid
-            figure(2);
+            fig = figure(2);
+            fig.Color='w'; 
             im = imagesc(Sol_Save(:,:,i));
             daspect([1 1 0.2])
             xlim([1, L / dx])
@@ -472,14 +468,23 @@ for n = 1:size(param_nums, 2)
             clim([0 3]);
         
             % Plot labels
-            xlabel('x');
-            ylabel('y');
+            %xlabel('x');
+            %ylabel('y');
             set(gca,'linewidth',2);
             set(gca,'FontSize',20);
+            set(gca,'XTickLabel',[]);
+            set(gca,'XTick',[])
+            set(gca,'YTickLabel',[]);
+            set(gca,'YTick',[])
+            title(['$t=' num2str(i*dt) '$'], 'Interpreter', 'latex')
+            set(gcf, 'Position', [300 300 500 500])
+            grid off
         
             % Save image to directory
             imdata = getframe(figure(2));
-            %imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
+            if (save_images)
+                imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
+            end
         
             % Add image to video
             %I = imread([folderName '/t=' num2str(dt*i, '%2.6f') '.png']); %read the next image

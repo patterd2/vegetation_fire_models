@@ -1,0 +1,41 @@
+% Plot proportions of FGBA (in data variable)
+
+% Default settings
+set(0, 'DefaultFigureRenderer', 'painters');
+set(0, 'defaultfigureposition', [400 250 500 500])
+set(0,'defaultaxesfontsize', 25);
+set(0,'defaultLegendInterpreter','latex');
+set(0,'defaultAxesTickLabelInterpreter','none');
+set(0,'defaulttextinterpreter','none');
+set(0,'DefaultLineLineWidth',3);
+set(0,'DefaultAxesLineWidth',2);
+set(0,'defaultAxesXGrid','on')
+set(0,'defaultAxesYGrid','on')
+set(0,'defaultlineMarkerSize', 25)
+
+% Figure
+figure(1)
+
+% Append bottom corners to data
+data_new = horzcat([17, 0, 0, 1]', data, [20, 0, 0, 1]');
+
+% Compute FGBA lines
+num_points = size(data_new, 2);
+F = data_new(2, :);
+GF = data_new(2, :) + data_new(3, :);
+AGF = 1 - data_new(4, :);
+
+% Set up color map
+custom_map = [0.4660 0.6740 0.1880
+    0.0039 0.1953 0.1250
+    0.8500 0.3250 0.0980
+    0.5 0.5 0.5]; %light green, dark green, orange, gray colors
+
+fill(data)
+fill(data_new(1, :), AGF, [0.5 0.5 0.5])
+hold on
+fill(data_new(1, :), GF, [0.4660 0.6740 0.1880])
+fill(data_new(1, :), F, [0.0039 0.1953 0.1250])
+
+set(0, 'defaultfigureposition', [400 250 500 500])
+
