@@ -12,13 +12,13 @@ make_video = true;
 save_images = true;
 
 season_num = 1; % Count how many seasons have passed
-season_length = 0.5; % in years
+season_length = 0.1; % in years
 
 
 % Parameters
 L = 1;            % Working on [0, L]
 num_sites = 2000; % Total number of sites in [0, L] x [0, L]
-T = 1;            % Simulation time length in real-time units
+T = 0.2;            % Simulation time length in real-time units
 dt = 0.0001;        % Length of time step in real-time units
 dx = 0.0025;        % Spatial resolution in x direction
 dy = 0.0025;        % Spatial resolution in y direction
@@ -409,6 +409,7 @@ for n = 1:1
             if (t + NextEvent > T)
                 Times(end + 1) = T;
                 X(:, k + 1) = X(:, k);
+                t = t + NextEvent;
             else
                 t = season_num * season_length; 
                 season_num = season_num + 1;
@@ -473,7 +474,7 @@ for n = 1:1
     
     % Interpolate temporally
     for i = 1:num_sites
-        Temp_Sol(i, :)= interp1(Times, X(i,:), 0:dt:Times(end), 'nearest');
+        Temp_Sol(i, :) = interp1(Times, X(i,:), 0:dt:Times(end), 'nearest');
     end
 
     if (make_video)
