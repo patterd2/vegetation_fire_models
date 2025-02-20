@@ -5,27 +5,32 @@ set(0,'defaultaxesfontsize', 20);
 set(0,'defaultAxesXGrid','on');
 set(0,'defaultAxesYGrid','on');
 
+folderName = 'circ_forest_test';
+long_fig = false;
+make_video = true;
+save_images = true;
+
 % Parameters
 L = 1;            % Working on [0, L]
-num_sites = 1000; % Total number of sites in [0, L] x [0, L]
-T = 0.04;            % Simulation time length in real-time units
+num_sites = 2000; % Total number of sites in [0, L] x [0, L]
+T = 0.05;            % Simulation time length in real-time units
 dt = 0.0001;        % Length of time step in real-time units
 dx = 0.0025;        % Spatial resolution in x direction
 dy = 0.0025;        % Spatial resolution in y direction
 t0 = 0;           % Start time
 
-
 fig_num = 1;
 
 % Choose type of initial state
-initial_state = 1; 
+initial_state = 3; 
+radius = 0.4;
+forest_density = 0.8;
 %1 = grass + fire patch; 
 % 2 = grass/forest mixture + fire patch; 
-% 3 = one chunk of forest; 
+% 3 = one circular patch of forest with given radius
 % 4 = disjoint forest
 % 5 = grass only;
-make_video = true;
-save_images = true;
+
 
 %% Begin loop
 for n = 1:1
@@ -33,12 +38,12 @@ for n = 1:1
     tic
 
     % Make directory to save images
-    folderName = 'timescale_fire_v3';
+    
     mkdir(folderName);
     
     % Parameters
-    varphi_A = 0.1;  % Rate of forest seeding into ash
-    varphi_G = 0.1;  % Rate of forest seeding into grass
+    varphi_A = 1;  % Rate of forest seeding into ash
+    varphi_G = 1;  % Rate of forest seeding into grass
     
     beta_F = 1e4;    % Rate of fire spread through forest
     beta_G = 5e4;    % Rate of fire spread through grass
@@ -117,8 +122,8 @@ for n = 1:1
         end
     elseif (initial_state == 3) % One forest patch 
         for i = 1:num_sites
-            if (locations(i, 1) < 0.6 * L && locations(i, 1) > 0.4 * L)
-                if (locations(i, 2) < 0.6 * L && locations(i, 2) > 0.4 * L)
+            if (dist_2D(locations(i, 1), locations(i, 2), L/2, L/2) < radius)
+                if (rand() < forest_density)
                     X(i, 1) = 1;
                 end
             end
@@ -378,6 +383,10 @@ for n = 1:1
     %% Plot the dynamics of the cover proportions
     % 0 = Grass, 1 = Forest, 2 = Burning, 3 = Ash
     figure(fig_num);
+
+    if (long_fig)
+        set(gcf, 'Position', [300 300 1200 400])
+    end
     stairs(Times,sum(X==0,1)./num_sites,'color',[0.4660 0.6740 0.1880],'LineWidth',3);
     hold on;
     stairs(Times,sum(X==1,1)./num_sites,'color',[0.0039 0.1953 0.1250],'LineWidth',3);
@@ -385,9 +394,12 @@ for n = 1:1
     stairs(Times,sum(X==3,1)./num_sites,'color',[0.5 0.5 0.5],'LineWidth',3);
     %legend('Grass','Forest','Burning','Ash');
     xlabel('time');
+    xlim([0, T]);
+    ylim([0, 1]);
     
     % Save figure
-    saveas(gcf, [folderName '/cover_proportions.jpeg']);
+    saveas(gcf, [folderName '/cover_proportions.png']);
+    saveas(gcf, [folderName '/cover_proportions.svg']);
     
     % Save X variables
     save([folderName '/X.mat'], 'X','-v7.3')
@@ -477,13 +489,14 @@ for n = 1:1
             set(gca,'YTickLabel',[]);
             set(gca,'YTick',[])
             title(['$t=' num2str(i*dt) '$'], 'Interpreter', 'latex')
-            set(gcf, 'Position', [300 300 500 500])
+            set(gcf, 'Position', [300 300 400 400])
             grid off
         
             % Save image to directory
             imdata = getframe(figure(2));
             if (save_images)
                 imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
+                saveas(gcf, [folderName '/t=' num2str(dt*i, '%2.6f') '.svg']);
             end
         
             % Add image to video

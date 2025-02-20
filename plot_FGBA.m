@@ -44,6 +44,7 @@ fill(data_new(1, :), F, [0.0039 0.1953 0.1250])
 
 set(figure(1), 'position', [400 250 500 400])
 xlabel(['$\' variable '$'], 'Interpreter', 'latex')
+xlim([var_min var_max])
 ylabel('Land fraction')
 saveas(gcf, [folder '/' variable '_FGBA.png']);
 saveas(gcf, [folder '/' variable '_FGBA.svg']);

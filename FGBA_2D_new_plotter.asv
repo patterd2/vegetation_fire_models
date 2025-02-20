@@ -5,15 +5,16 @@ set(0,'defaultaxesfontsize', 20);
 set(0,'defaultAxesXGrid','on');
 set(0,'defaultAxesYGrid','on');
 
+folderName = 'mean_field_v1';
+
 % Parameters
 L = 1;            % Working on [0, L]
-num_sites = 2000; % Total number of sites in [0, L] x [0, L]
-T = 0.04;            % Simulation time length in real-time units
+num_sites = 1000; % Total number of sites in [0, L] x [0, L]
+T = 0.6;            % Simulation time length in real-time units
 dt = 0.0001;        % Length of time step in real-time units
 dx = 0.0025;        % Spatial resolution in x direction
 dy = 0.0025;        % Spatial resolution in y direction
 t0 = 0;           % Start time
-
 
 fig_num = 1;
 
@@ -33,15 +34,15 @@ for n = 1:1
     tic
 
     % Make directory to save images
-    folderName = 'timescale_fire_v3';
+    
     mkdir(folderName);
     
     % Parameters
-    varphi_A = 0.1;  % Rate of forest seeding into ash
-    varphi_G = 0.1;  % Rate of forest seeding into grass
+    varphi_A = 1;  % Rate of forest seeding into ash
+    varphi_G = 1;  % Rate of forest seeding into grass
     
     beta_F = 1e4;    % Rate of fire spread through forest
-    beta_G = 5e4;    % Rate of fire spread through grass
+    beta_G = 1e5;    % Rate of fire spread through grass
     gamma = 500;     % Rate of grass regrowth from ash
     %q = 10^3;         % Fire quenching rate
     q = 2e4;
@@ -49,7 +50,7 @@ for n = 1:1
     mu = 0.01;       % Rate of tree death due to non-fire causes
     
     sigma_P = 0.05;   % width of Gaussian of forest seeding
-    sigma_B = 0.03;    % width of Gaussian for burning spread over grassland
+    sigma_B = 0.1;    % width of Gaussian for burning spread over grassland
     sigma_G = 0.05;    % width of Gaussian for flammability of large grass
     sigma_F = 0.05;    % width of Gaussian for flammability of large grass
     
@@ -95,8 +96,8 @@ for n = 1:1
     %% Initialize states of sites
     if (initial_state == 1) % one square fire patch at [0.45L, 0.55L] x [0.45L, 0.55L]
         for i = 1:num_sites
-            if (locations(i, 1) < 0.55 * L && locations(i, 1) > 0.45 * L)
-                if (locations(i, 2) < 0.55 * L && locations(i, 2) > 0.45 * L)
+            if (locations(i, 1) < 0.525 * L && locations(i, 1) > 0.475 * L)
+                if (locations(i, 2) < 0.525 * L && locations(i, 2) > 0.475 * L)
                     X(i, 1) = 2;
                 end
             end
@@ -385,6 +386,7 @@ for n = 1:1
     stairs(Times,sum(X==3,1)./num_sites,'color',[0.5 0.5 0.5],'LineWidth',3);
     %legend('Grass','Forest','Burning','Ash');
     xlabel('time');
+    xlim([0, T]);
     
     % Save figure
     saveas(gcf, [folderName '/cover_proportions.jpeg']);
@@ -473,14 +475,18 @@ for n = 1:1
             set(gca,'linewidth',2);
             set(gca,'FontSize',20);
             set(gca,'XTickLabel',[]);
+            set(gca,'XTick',[])
             set(gca,'YTickLabel',[]);
+            set(gca,'YTick',[])
             title(['$t=' num2str(i*dt) '$'], 'Interpreter', 'latex')
+            set(gcf, 'Position', [300 300 400 400])
             grid off
         
             % Save image to directory
             imdata = getframe(figure(2));
             if (save_images)
                 imwrite(imdata.cdata, [folderName '/t=' num2str(dt*i, '%2.6f') '.png']);
+                saveas(gcf, [folderName '/t=' num2str(dt*i, '%2.6f') '.svg']);
             end
         
             % Add image to video
